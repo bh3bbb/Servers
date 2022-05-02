@@ -1,9 +1,13 @@
-shadowsocks=home.bh3bbb.com:65501, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=US负载均衡
-shadowsocks=home.bh3bbb.com:65502, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=HK负载均衡
-shadowsocks=home.bh3bbb.com:65503, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=JP负载均衡
-shadowsocks=home.bh3bbb.com:65504, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=SG负载均衡
-shadowsocks=192.168.123.9:1181, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=US负载均衡in
-shadowsocks=192.168.123.9:1182, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=HK负载均衡in
-shadowsocks=192.168.123.9:1183, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=JP负载均衡in
-shadowsocks=192.168.123.9:1184, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=SG负载均衡in
+shadowsocks=beijing.bh3bbb.com:1181, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=US负载均衡BJ
+shadowsocks=beijing.bh3bbb.com:1182, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=HK负载均衡BJ
+shadowsocks=beijing.bh3bbb.com:1183, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=JP负载均衡BJ
+shadowsocks=beijing.bh3bbb.com:1184, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=SG负载均衡TJ
+shadowsocks=beijing.bh3bbb.com:1181, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=US负载均衡TJ
+shadowsocks=beijing.bh3bbb.com:1182, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=HK负载均衡TJ
+shadowsocks=beijing.bh3bbb.com:1183, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=JP负载均衡TJ
+shadowsocks=beijing.bh3bbb.com:1184, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=SG负载均衡TJ
+shadowsocks=192.168.123.9:1181, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=US负载均衡IN
+shadowsocks=192.168.123.9:1182, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=HK负载均衡IN
+shadowsocks=192.168.123.9:1183, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=JP负载均衡IN
+shadowsocks=192.168.123.9:1184, method=chacha20-ietf, password=nexitally, ssr-protocol=auth_aes128_sha1, ssr-protocol-param=6787735:43b29359dfc944f6, fast-open=true, udp-relay=true, tag=SG负载均衡IN
 shadowsocks=home.bh3bbb.com:65505, method=chacha20-ietf, password=nexitally, fast-open=true, udp-relay=true, tag=TJCU
