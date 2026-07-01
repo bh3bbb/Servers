@@ -96,7 +96,7 @@ class PDFRiskAnnotator(QMainWindow):
 footer_layout = QVBoxLayout()
 footer_layout.setSpacing(4)
 # 版本号
-label_ver = QLabel("软件版本：20260701-v2.1")
+label_ver = QLabel("软件版本：20260701-v2.4")
 label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
 label_ver.setStyleSheet("font-size:10px; color:#555555;")
 footer_layout.addWidget(label_ver)
