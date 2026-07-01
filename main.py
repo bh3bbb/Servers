@@ -67,7 +67,6 @@ class PDFRiskAnnotator(QMainWindow):
         self.radio_group = QButtonGroup()
         self.radio_enable = QRadioButton("启用（彩色打印推荐）")
         self.radio_disable = QRadioButton("关闭（黑白打印建议勾选此项）")
-        # 默认关闭，适配多数黑白打印机场景
         self.radio_disable.setChecked(True)
         self.radio_group.addButton(self.radio_enable, 1)
         self.radio_group.addButton(self.radio_disable, 0)
@@ -160,78 +159,77 @@ class PDFRiskAnnotator(QMainWindow):
             word_list = page.extract_words()
             for word_info in word_list:
                 if target_text in word_info["text"]:
-                    # 提取原文字坐标
                     base_x = word_info["x0"]
                     base_y = word_info["y0"]
-                    # 自适应字号，和原文保持一致
                     base_font_size = round(word_info["y1"] - word_info["y0"])
-                    # 向下偏移，落在下方填写横线位置
                     write_y = base_y - base_font_size * 1.3
                     return (page_num, base_x, write_y, base_font_size)
-        # 全文档未找到目标文字
         return None
 
     def annotate_pdf(self):
-        if not self.pdf_path:
-            self.label_file.setText("请先选择PDF文件！")
-            return
-        pos = self.get_position_value()
-        if pos is None:
-            return
-        draw_x, draw_y = pos
-        selected_roman = self.combo_risk.currentText()
-        risk_text = f"作业风险等级：{selected_roman}级"
+        try:
+            if not self.pdf_path:
+                self.label_file.setText("请先选择PDF文件！")
+                return
+            pos = self.get_position_value()
+            if pos is None:
+                return
+            draw_x, draw_y = pos
+            selected_roman = self.combo_risk.currentText()
+            risk_text = f"作业风险等级：{selected_roman}级"
 
-        reader = PdfReader(self.pdf_path)
-        writer = PdfWriter()
-        # 读取单选框状态
-        enable_fill_safety = self.radio_group.checkedId() == 1
-        safety_mark_info = None
-        if enable_fill_safety:
-            safety_mark_info = self.find_safety_line_pos_all_page(reader)
+            reader = PdfReader(self.pdf_path)
+            writer = PdfWriter()
+            enable_fill_safety = self.radio_group.checkedId() == 1
+            safety_mark_info = None
+            if enable_fill_safety:
+                safety_mark_info = self.find_safety_line_pos_all_page(reader)
 
-        # 逐页循环处理
-        for page_idx, page in enumerate(reader.pages):
-            # 创建当前页的临时水印画布
-            temp_single = "tmp_single_mark.pdf"
-            c = canvas.Canvas(temp_single, pagesize=A4)
-            c.setFont(FONT_CN, 14)
+            # 统一临时文件（不再每页新建，消除IO冲突）
+            temp_water = "tmp_mark_layer.pdf"
+            for page_idx, page in enumerate(reader.pages):
+                c = canvas.Canvas(temp_water, pagesize=A4)
+                c.setFont(FONT_CN, 14)
+                # 仅首页绘制风险等级黑色文字
+                if page_idx == 0:
+                    c.setFillColor("black")
+                    c.drawString(draw_x, draw_y, risk_text)
+                # 匹配页面绘制红色无
+                if enable_fill_safety and safety_mark_info is not None:
+                    target_page, sx, sy, font_size = safety_mark_info
+                    if page_idx == target_page:
+                        c.setFillColor(red)
+                        c.setFont(FONT_CN, font_size)
+                        c.drawString(sx, sy, "无")
+                c.save()
+                # 合并图层
+                mark_reader = PdfReader(temp_water)
+                page.merge_page(mark_reader.pages[0])
+                writer.add_page(page)
+            # 删除临时文件
+            if os.path.exists(temp_water):
+                os.remove(temp_water)
 
-            # 1. 仅第一页添加风险等级标注
-            if page_idx == 0:
-                c.setFillColor("black")
-                c.drawString(draw_x, draw_y, risk_text)
+            # 输出文件
+            dir_name, file_name = os.path.split(self.pdf_path)
+            name_no_ext, ext = os.path.splitext(file_name)
+            out_name = f"{name_no_ext}_标注完成{ext}"
+            out_path = os.path.join(dir_name, out_name)
+            with open(out_path, "wb") as f:
+                writer.write(f)
 
-            # 2. 匹配到的页面，绘制红色“无”
+            tip_msg = f"完成！输出：{out_name}\n风险等级已添加至首页"
             if enable_fill_safety and safety_mark_info is not None:
-                target_page, sx, sy, font_size = safety_mark_info
-                if page_idx == target_page:
-                    c.setFillColor(red)
-                    c.setFont(FONT_CN, font_size)
-                    c.drawString(sx, sy, "无")
-
-            c.save()
-            # 合并当前页水印
-            temp_reader = PdfReader(temp_single)
-            page.merge_page(temp_reader.pages[0])
-            writer.add_page(page)
-            os.remove(temp_single)
-
-        # 导出文件
-        dir_name, file_name = os.path.split(self.pdf_path)
-        name_no_ext, ext = os.path.splitext(file_name)
-        out_name = f"{name_no_ext}_标注完成{ext}"
-        out_path = os.path.join(dir_name, out_name)
-
-        with open(out_path, "wb") as f:
-            writer.write(f)
-
-        tip_msg = f"完成！输出：{out_name}\n风险等级已添加至首页"
-        if enable_fill_safety and safety_mark_info is not None:
-            tip_msg += "，已自动匹配页面填写红色「无」"
-        elif enable_fill_safety and safety_mark_info is None:
-            tip_msg += "，未检测到【7.现场补充安全措施】文字，跳过红字填写"
-        self.label_file.setText(tip_msg)
+                tip_msg += "，已自动匹配页面填写红色「无」"
+            elif enable_fill_safety and safety_mark_info is None:
+                tip_msg += "，未检测到【7.现场补充安全措施】文字，跳过红字填写"
+            self.label_file.setText(tip_msg)
+        except Exception as e:
+            # 捕获全部异常，弹窗提示，不会直接闪退
+            QMessageBox.critical(self, "处理失败", f"PDF处理异常：{str(e)}")
+            # 清理残留临时文件
+            if os.path.exists("tmp_mark_layer.pdf"):
+                os.remove("tmp_mark_layer.pdf")
 
 
 if __name__ == "__main__":
