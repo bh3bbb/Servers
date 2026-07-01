@@ -34,7 +34,7 @@ Y_MIN, Y_MAX = 700, 850
 class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
-        # 修改2：程序主标题
+        # 程序主标题
         self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
         self.setFixedSize(520, 410)
         self.pdf_path = ""
@@ -92,33 +92,35 @@ class PDFRiskAnnotator(QMainWindow):
         # 填充空白占位
         layout.addStretch()
 
-# 右下角版本+仓库地址+开源版权声明
-footer_layout = QVBoxLayout()
-footer_layout.setSpacing(4)
-# 版本号
-label_ver = QLabel("软件版本：20260701-v2.4")
-label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
-label_ver.setStyleSheet("font-size:10px; color:#555555;")
-footer_layout.addWidget(label_ver)
+        # ===================== 修复：全部缩进至__init__内部 =====================
+        # 右下角版本+仓库地址+开源版权声明
+        footer_layout = QVBoxLayout()
+        footer_layout.setSpacing(4)
+        # 版本号
+        label_ver = QLabel("软件版本：20260701-v2.4")
+        label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_ver.setStyleSheet("font-size:10px; color:#555555;")
+        footer_layout.addWidget(label_ver)
 
-# 新增开源仓库地址+说明
-label_repo_tip = QLabel("开源仓库（更新下载、问题反馈）：")
-label_repo_tip.setAlignment(Qt.AlignmentFlag.AlignRight)
-label_repo_tip.setStyleSheet("font-size:9px; color:#555555;")
-footer_layout.addWidget(label_repo_tip)
+        # 新增开源仓库地址+说明
+        label_repo_tip = QLabel("开源仓库（更新下载、问题反馈）：")
+        label_repo_tip.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_repo_tip.setStyleSheet("font-size:9px; color:#555555;")
+        footer_layout.addWidget(label_repo_tip)
 
-label_repo_url = QLabel("https://github.com/bh3bbb/power-workticket-risk-annotator")
-label_repo_url.setAlignment(Qt.AlignmentFlag.AlignRight)
-label_repo_url.setStyleSheet("font-size:9px; color:#0066cc;")
-footer_layout.addWidget(label_repo_url)
+        label_repo_url = QLabel("https://github.com/bh3bbb/power-workticket-risk-annotator")
+        label_repo_url.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_repo_url.setStyleSheet("font-size:9px; color:#0066cc;")
+        footer_layout.addWidget(label_repo_url)
 
-# 开源版权声明（替换原All rights reserved闭源语句）
-label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
-label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
-label_copyright.setStyleSheet("font-size:9px; color:#555555;")
-footer_layout.addWidget(label_copyright)
+        # 开源版权声明（替换原All rights reserved闭源语句）
+        label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
+        label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_copyright.setStyleSheet("font-size:9px; color:#555555;")
+        footer_layout.addWidget(label_copyright)
 
         layout.addLayout(footer_layout)
+        # ======================================================================
 
     def reset_position(self):
         """一键恢复默认坐标"""
@@ -174,7 +176,7 @@ footer_layout.addWidget(label_copyright)
         water_reader = PdfReader(temp_water)
         writer = PdfWriter()
 
-        # ========== 关键修改：仅首页添加标注，其余页面原样输出 ==========
+        # 关键修改：仅首页添加标注，其余页面原样输出
         for idx, page in enumerate(reader.pages):
             if idx == 0:
                 # 第一页合并水印文字
