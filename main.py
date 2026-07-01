@@ -23,9 +23,9 @@ risk_list = ["V", "IV", "III", "II", "I"]
 pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
 FONT_CN = 'STSong-Light'
 
-# 默认坐标参数（当前不重叠基准值）
+# 默认坐标参数（已修改Y默认值813）
 DEFAULT_X = 30
-DEFAULT_Y = 820
+DEFAULT_Y = 813
 # 参数限制范围
 X_MIN, X_MAX = 10, 200
 Y_MIN, Y_MAX = 700, 850
@@ -34,8 +34,9 @@ Y_MIN, Y_MAX = 700, 850
 class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("电力通信工作票PDF风险等级标注工具 x64")
-        self.setFixedSize(520, 340)
+        # 修改2：程序主标题
+        self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
+        self.setFixedSize(520, 380)
         self.pdf_path = ""
 
         central = QWidget()
@@ -60,7 +61,7 @@ class PDFRiskAnnotator(QMainWindow):
         self.combo_risk.setCurrentText("V")
         layout.addWidget(self.combo_risk)
 
-        # 3. 坐标参数设置区域（新增）
+        # 3. 坐标参数设置区域
         layout.addWidget(QLabel("==== 标注位置参数设置 ===="))
         # X偏移行
         row_x = QHBoxLayout()
@@ -87,6 +88,24 @@ class PDFRiskAnnotator(QMainWindow):
         self.btn_run = QPushButton("生成带风险等级的PDF")
         self.btn_run.clicked.connect(self.annotate_pdf)
         layout.addWidget(self.btn_run)
+
+        # 填充空白占位
+        layout.addStretch()
+
+        # 修改3：右下角版本+版权信息
+        footer_layout = QVBoxLayout()
+        footer_layout.setSpacing(4)
+        # 版本号
+        label_ver = QLabel("软件版本：20260701-v2.2")
+        label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_ver.setStyleSheet("font-size:10px; color:#555555;")
+        footer_layout.addWidget(label_ver)
+        # 版权信息
+        label_copyright = QLabel("Copyright(c) [2026] [Guangyuan Ding(BH3BBB)]. All rights reserved.")
+        label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
+        label_copyright.setStyleSheet("font-size:9px; color:#555555;")
+        footer_layout.addWidget(label_copyright)
+        layout.addLayout(footer_layout)
 
     def reset_position(self):
         """一键恢复默认坐标"""
@@ -142,8 +161,11 @@ class PDFRiskAnnotator(QMainWindow):
         water_reader = PdfReader(temp_water)
         writer = PdfWriter()
 
-        for page in reader.pages:
-            page.merge_page(water_reader.pages[0])
+        # ========== 关键修改：仅首页添加标注，其余页面原样输出 ==========
+        for idx, page in enumerate(reader.pages):
+            if idx == 0:
+                # 第一页合并水印文字
+                page.merge_page(water_reader.pages[0])
             writer.add_page(page)
 
         dir_name, file_name = os.path.split(self.pdf_path)
@@ -155,7 +177,7 @@ class PDFRiskAnnotator(QMainWindow):
             writer.write(f)
 
         os.remove(temp_water)
-        self.label_file.setText(f"完成！输出：{out_name}")
+        self.label_file.setText(f"完成！输出：{out_name}（仅首页添加风险等级标注）")
 
 
 if __name__ == "__main__":
