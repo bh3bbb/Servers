@@ -1,7 +1,7 @@
 import sys
 import os
 import base64
-from io import Bytes
+from io import BytesIO
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QFileDialog, QComboBox, QLabel, QLineEdit, QMessageBox)
 from PyQt6.QtCore import Qt, QUrl
@@ -62,7 +62,7 @@ class PDFRiskAnnotator(QMainWindow):
         if BG_BASE64.strip():
             try:
                 img_bytes = base64.b64decode(BG_BASE64)
-                qimg = QImage.fromData(img_bytes)
+                qimg = QImage.fromData(BytesIO(img_bytes).getvalue())
                 pix_raw = QPixmap.fromImage(qimg)
                 pix_scaled = pix_raw.scaled(160, 90, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 logo_label.setPixmap(pix_scaled)
