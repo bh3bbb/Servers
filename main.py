@@ -2,7 +2,7 @@ import sys
 import os
 import base64
 from io import BytesIO
-# 高分DPI前置配置（必须放在所有Qt导入最前面）
+# DPI配置放最顶部
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 os.environ["QT_SCALE_FACTOR"] = "1"
@@ -38,30 +38,30 @@ class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
-        # 固定宽高，足够容纳所有控件
-        self.setFixedSize(640, 540)
+        # 加宽加高窗口，给底部留出充足高度
+        self.setFixedSize(660, 580)
         self.pdf_path = ""
 
-        # 主窗口底色纯白，取消全局半透明
         self.setStyleSheet("background-color:#ffffff;")
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
-        main_layout.setSpacing(14)
-        main_layout.setContentsMargins(28, 28, 28, 28)
+        main_layout.setSpacing(16)
+        # 底部边距大幅增加，防止底部文字被窗口截断
+        main_layout.setContentsMargins(30, 30, 30, 40)
 
-        # 1. 顶部Logo区域
+        # 1. 顶部Logo区域修复：取消固定高度，自适应完整显示图片
         logo_label = QLabel()
-        logo_label.setFixedHeight(100)
         if BG_BASE64.strip():
             try:
                 img_bytes = base64.b64decode(BG_BASE64)
                 qimg = QImage.fromData(BytesIO(img_bytes).getvalue())
                 pix_raw = QPixmap.fromImage(qimg)
-                pix_scaled = pix_raw.scaled(180, 90, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                # 缩小缩放尺寸，保证整行完整显示不裁切
+                pix_scaled = pix_raw.scaled(220, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 logo_label.setPixmap(pix_scaled)
             except Exception:
-                logo_label.setText("图片加载失败")
+                logo_label.setText("图片加载失败，请检查Base64字符串")
         main_layout.addWidget(logo_label)
 
         # 分隔线
@@ -71,7 +71,7 @@ class PDFRiskAnnotator(QMainWindow):
         split_line.setStyleSheet("color:#777777; font-size:10px;")
         main_layout.addWidget(split_line)
 
-        # 统一控件样式（只给按钮/输入框单独样式，不全局覆盖）
+        # 样式定义
         btn_style = """
         QPushButton{
             background-color: #4088dd;
@@ -95,7 +95,7 @@ class PDFRiskAnnotator(QMainWindow):
         """
         label_style = "QLabel{font-size:13px; color:#222222;}"
 
-        # 1. 选择PDF按钮
+        # 选择PDF按钮
         self.btn_select = QPushButton("选择PDF文件")
         self.btn_select.setFixedHeight(42)
         self.btn_select.setStyleSheet(btn_style)
@@ -109,7 +109,7 @@ class PDFRiskAnnotator(QMainWindow):
         self.label_file.setStyleSheet(label_style)
         main_layout.addWidget(self.label_file)
 
-        # 2. 风险等级下拉
+        # 风险等级下拉
         lab_risk = QLabel("作业风险等级：")
         lab_risk.setStyleSheet(label_style)
         main_layout.addWidget(lab_risk)
@@ -120,7 +120,7 @@ class PDFRiskAnnotator(QMainWindow):
         self.combo_risk.setCurrentText("V")
         main_layout.addWidget(self.combo_risk)
 
-        # 3. X坐标行
+        # X坐标行
         lab_x = QLabel(f"左右偏移X({X_MIN}~{X_MAX})：")
         lab_x.setStyleSheet(label_style)
         row_x = QHBoxLayout()
@@ -132,7 +132,7 @@ class PDFRiskAnnotator(QMainWindow):
         row_x.addWidget(self.edit_x)
         main_layout.addLayout(row_x)
 
-        # 4. Y坐标行
+        # Y坐标行
         lab_y = QLabel(f"上下偏移Y({Y_MIN}~{Y_MAX})：")
         lab_y.setStyleSheet(label_style)
         row_y = QHBoxLayout()
@@ -158,27 +158,27 @@ class PDFRiskAnnotator(QMainWindow):
         self.btn_run.clicked.connect(self.annotate_pdf)
         main_layout.addWidget(self.btn_run)
 
-        # 空白弹性占位
-        main_layout.addStretch()
+        # 弹性占位，把底部区域向下顶，避免紧贴窗口底边
+        main_layout.addStretch(2)
 
-        # 底部版权区域
+        # 底部版权区域 加大间距、放大字号、增加行高
         footer_layout = QVBoxLayout()
-        footer_layout.setSpacing(6)
+        footer_layout.setSpacing(8)
 
         # 版本号
         label_ver = QLabel("软件版本：20260701-v2.4")
         label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
-        label_ver.setStyleSheet("font-size:10px; color:#555555;")
+        label_ver.setStyleSheet("font-size:11px; color:#555555;")
         footer_layout.addWidget(label_ver)
 
         # 仓库链接同一行
         repo_row = QHBoxLayout()
         repo_row.setAlignment(Qt.AlignmentFlag.AlignRight)
         tip_text = QLabel("开源仓库（更新下载、问题反馈）：")
-        tip_text.setStyleSheet("font-size:9px; color:#555555;")
+        tip_text.setStyleSheet("font-size:10px; color:#555555;")
         link_label = QLabel('<a href="https://github.com/bh3bbb/power-workticket-risk-annotator">https://github.com/bh3bbb/power-workticket-risk-annotator</a>')
         link_label.setOpenExternalLinks(True)
-        link_label.setStyleSheet("font-size:9px; color:#0066cc;")
+        link_label.setStyleSheet("font-size:10px; color:#0066cc;")
         repo_row.addWidget(tip_text)
         repo_row.addWidget(QLabel(" "))
         repo_row.addWidget(link_label)
@@ -187,14 +187,13 @@ class PDFRiskAnnotator(QMainWindow):
         # 版权文字
         label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
         label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
-        label_copyright.setStyleSheet("font-size:9px; color:#555555;")
+        label_copyright.setStyleSheet("font-size:10px; color:#555555;")
         footer_layout.addWidget(label_copyright)
 
         main_layout.addLayout(footer_layout)
 
     def reset_position(self):
         self.edit_x.setText(str(DEFAULT_X))
-        self.edit_y.setText(str(DEFAULT_Y))
 
     def get_position_value(self):
         try:
