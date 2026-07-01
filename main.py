@@ -1,3 +1,4 @@
+
 import sys
 import os
 import base64
@@ -29,10 +30,9 @@ risk_list = ["V", "IV", "III", "II", "I"]
 pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
 FONT_CN = 'STSong-Light'
 
-# 默认坐标参数（已修改Y默认值813）
+# 默认坐标参数
 DEFAULT_X = 30
 DEFAULT_Y = 813
-# 参数限制范围
 X_MIN, X_MAX = 10, 200
 Y_MIN, Y_MAX = 700, 850
 
@@ -40,7 +40,6 @@ Y_MIN, Y_MAX = 700, 850
 class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
-        # 程序主标题
         self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
         self.setFixedSize(540, 460)
         self.pdf_path = ""
@@ -57,7 +56,7 @@ class PDFRiskAnnotator(QMainWindow):
         layout.setSpacing(12)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        # ===================== 左上角Logo区域 =====================
+        # 左上角Logo区域
         logo_label = QLabel()
         if BG_BASE64.strip():
             try:
@@ -71,10 +70,9 @@ class PDFRiskAnnotator(QMainWindow):
         layout.addWidget(logo_label)
 
         split_line = QLabel("————————————————————————")
-        split_line.setAlignment(Qt.AlignCenter)
+        split_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         split_line.setStyleSheet("color:#777; font-size:10px;")
         layout.addWidget(split_line)
-        # =========================================================
 
         # 全局控件美化
         self.widget_style = """
@@ -105,7 +103,7 @@ class PDFRiskAnnotator(QMainWindow):
         }
         """
 
-        # 1. 文件选择区
+        # 文件选择区
         self.btn_select = QPushButton("选择PDF文件")
         self.btn_select.setStyleSheet(self.widget_style)
         self.btn_select.clicked.connect(self.select_pdf)
@@ -115,7 +113,7 @@ class PDFRiskAnnotator(QMainWindow):
         self.label_file.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.label_file)
 
-        # 2. 风险等级下拉
+        # 风险等级下拉
         layout.addWidget(QLabel("作业风险等级："))
         self.combo_risk = QComboBox()
         self.combo_risk.setStyleSheet(self.widget_style)
@@ -123,9 +121,8 @@ class PDFRiskAnnotator(QMainWindow):
         self.combo_risk.setCurrentText("V")
         layout.addWidget(self.combo_risk)
 
-        # 3. 坐标参数设置区域
+        # 坐标参数设置
         layout.addWidget(QLabel("==== 标注位置参数设置 ===="))
-        # X偏移行
         row_x = QHBoxLayout()
         row_x.addWidget(QLabel(f"左右偏移X({X_MIN}~{X_MAX})："))
         self.edit_x = QLineEdit(str(DEFAULT_X))
@@ -134,7 +131,6 @@ class PDFRiskAnnotator(QMainWindow):
         row_x.addWidget(self.edit_x)
         layout.addLayout(row_x)
 
-        # Y偏移行
         row_y = QHBoxLayout()
         row_y.addWidget(QLabel(f"上下偏移Y({Y_MIN}~{Y_MAX})："))
         self.edit_y = QLineEdit(str(DEFAULT_Y))
@@ -143,78 +139,69 @@ class PDFRiskAnnotator(QMainWindow):
         row_y.addWidget(self.edit_y)
         layout.addLayout(row_y)
 
-        # 重置默认坐标按钮
+        # 重置按钮
         self.btn_reset_pos = QPushButton("重置为默认坐标")
         self.btn_reset_pos.setStyleSheet(self.widget_style)
         self.btn_reset_pos.clicked.connect(self.reset_position)
         layout.addWidget(self.btn_reset_pos)
 
-        # 4. 生成PDF按钮
+        # 生成按钮
         self.btn_run = QPushButton("生成带风险等级的PDF")
         self.btn_run.setStyleSheet(self.widget_style)
         self.btn_run.clicked.connect(self.annotate_pdf)
         layout.addWidget(self.btn_run)
 
-        # 填充空白占位
         layout.addStretch()
 
-        # ===================== 底部版权区（仓库文字+链接同一行，可点击） =====================
+        # 底部版权区
         footer_layout = QVBoxLayout()
         footer_layout.setSpacing(4)
 
-        # 版本号
         label_ver = QLabel("软件版本：20260701-v2.4")
         label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_ver.setStyleSheet("font-size:10px; color:#555555;")
         footer_layout.addWidget(label_ver)
 
-        # 仓库说明+链接同一行水平布局
         repo_row = QHBoxLayout()
-        repo_row.setAlignment(Qt.AlignRight)
+        repo_row.setAlignment(Qt.AlignmentFlag.AlignRight)
         tip_text = QLabel("开源仓库（更新下载、问题反馈）：")
         tip_text.setStyleSheet("font-size:9px; color:#555555;")
         link_label = QLabel('<a href="https://github.com/bh3bbb/power-workticket-risk-annotator">https://github.com/bh3bbb/power-workticket-risk-annotator</a>')
-        link_label.setOpenExternalLinks(True)  # 开启外部浏览器跳转
+        link_label.setOpenExternalLinks(True)
         link_label.setStyleSheet("font-size:9px; color:#0066cc;")
         repo_row.addWidget(tip_text)
-        repo_row.addWidget(QLabel(" "))  # 空格分隔
+        repo_row.addWidget(QLabel(" "))
         repo_row.addWidget(link_label)
         footer_layout.addLayout(repo_row)
 
-        # 开源版权声明
         label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
         label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_copyright.setStyleSheet("font-size:9px; color:#555555;")
         footer_layout.addWidget(label_copyright)
 
         layout.addLayout(footer_layout)
-        # ======================================================================
 
     def reset_position(self):
-        """一键恢复默认坐标"""
         self.edit_x.setText(str(DEFAULT_X))
         self.edit_y.setText(str(DEFAULT_Y))
 
     def get_position_value(self):
-        """校验输入框数字合法性"""
         try:
             x = int(self.edit_x.text())
             y = int(self.edit_y.text())
         except ValueError:
             QMessageBox.warning(self, "参数错误", "偏移值必须输入整数！")
             return None
-
         if not (X_MIN <= x <= X_MAX):
             QMessageBox.warning(self, "参数超出范围", f"左右X必须在 {X_MIN} ~ {X_MAX} 之间")
             return None
         if not (Y_MIN <= y <= Y_MAX):
             QMessageBox.warning(self, "参数超出范围", f"上下Y必须在 {Y_MIN} ~ {Y_MAX} 之间")
+            return None
         return (x, y)
 
     def select_pdf(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "选择PDF", "", "PDF 文件 (*.pdf)"
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "选择PDF", "", "PDF 文件 (*.pdf)")
         if path:
             self.pdf_path = path
             self.label_file.setText(os.path.basename(path))
@@ -223,19 +210,15 @@ class PDFRiskAnnotator(QMainWindow):
         if not self.pdf_path:
             self.label_file.setText("请先选择PDF文件！")
             return
-
         pos = self.get_position_value()
         if pos is None:
             return
         draw_x, draw_y = pos
-
-        selected_roman = self.combo_risk.currentText()
-        text_content = f"作业风险等级：{selected_roman}级"
+        text_content = f"作业风险等级：{self.combo_risk.currentText()}级"
 
         temp_water = "tmp_watermark.pdf"
         c = canvas.Canvas(temp_water, pagesize=A4)
         c.setFont(FONT_CN, 14)
-        # 使用界面自定义坐标绘制文字
         c.drawString(draw_x, draw_y, text_content)
         c.save()
 
@@ -243,23 +226,18 @@ class PDFRiskAnnotator(QMainWindow):
         water_reader = PdfReader(temp_water)
         writer = PdfWriter()
 
-        # 关键修改：仅首页添加标注，其余页面原样输出
         for idx, page in enumerate(reader.pages):
             if idx == 0:
-                # 第一页合并水印文字
                 page.merge_page(water_reader.pages[0])
             writer.add_page(page)
 
         dir_name, file_name = os.path.split(self.pdf_path)
         name_no_ext, ext = os.path.splitext(file_name)
-        out_name = f"{name_no_ext}_风险标注{ext}"
-        out_path = os.path.join(dir_name, out_name)
-
+        out_path = os.path.join(dir_name, f"{name_no_ext}_风险标注{ext}")
         with open(out_path, "wb") as f:
             writer.write(f)
-
         os.remove(temp_water)
-        self.label_file.setText(f"完成！输出：{out_name}（仅首页添加风险等级标注）")
+        self.label_file.setText(f"完成！输出：{os.path.basename(out_path)}（仅首页添加风险等级标注）")
 
 
 if __name__ == "__main__":
