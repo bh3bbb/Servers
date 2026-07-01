@@ -7,7 +7,8 @@ from PyPDF2 import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+# 新增：使用reportlab内置开源中文字体
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
 # 风险等级配置：从大到小排序，默认V
 risk_map = {
@@ -18,6 +19,10 @@ risk_map = {
     "I": "1"
 }
 risk_list = ["V", "IV", "III", "II", "I"]
+
+# 注册内置中文字体（STSong-Light 宋体，原生支持中文，无需外部ttf）
+pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+FONT_CN = 'STSong-Light'
 
 
 class PDFRiskAnnotator(QMainWindow):
@@ -76,6 +81,8 @@ class PDFRiskAnnotator(QMainWindow):
         # 临时水印PDF（存放左上角文字）
         temp_water = "tmp_watermark.pdf"
         c = canvas.Canvas(temp_water, pagesize=A4)
+        # 设置中文字体、字号
+        c.setFont(FONT_CN, 14)
         # 左上角坐标：x=30, y=800（A4纸左上角基准）
         c.drawString(30, 800, text_content)
         c.save()
