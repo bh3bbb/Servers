@@ -1,5 +1,5 @@
 # power-workticket-risk-annotator
-README.md
+
 Power Workticket Risk Annotator / 电力工作票风险标注工具
 Windows x64 GUI Tool | MIT Open Source
 软件版本：20260701-v2.1
