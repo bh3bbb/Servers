@@ -2,15 +2,15 @@ import sys
 import os
 import base64
 from io import BytesIO
+# 高分DPI前置配置（必须放在所有Qt导入最前面）
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+os.environ["QT_SCALE_FACTOR"] = "1"
+
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QFileDialog, QComboBox, QLabel, QLineEdit, QMessageBox)
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QPixmap, QImage, QDesktopServices
-
-# 高分屏DPI适配（解决Win11缩放界面模糊、排版错乱）
-os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
-os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -38,132 +38,140 @@ class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
-        # 加宽加高窗口，避免Win11挤压控件
-        self.setFixedSize(620, 520)
+        # 固定宽高，足够容纳所有控件
+        self.setFixedSize(640, 540)
         self.pdf_path = ""
 
+        # 主窗口底色纯白，取消全局半透明
+        self.setStyleSheet("background-color:#ffffff;")
         central = QWidget()
-        central.setStyleSheet("""
-            QWidget{
-                background-color: rgba(255,255,255,220);
-                border-radius: 12px;
-            }
-        """)
         self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
-        layout.setSpacing(16)  # 加大控件间距
-        layout.setContentsMargins(30, 30, 30, 30)  # 四周留白放大
+        main_layout = QVBoxLayout(central)
+        main_layout.setSpacing(14)
+        main_layout.setContentsMargins(28, 28, 28, 28)
 
-        # 左上角Logo区域
+        # 1. 顶部Logo区域
         logo_label = QLabel()
-        logo_label.setMinimumHeight(100)
+        logo_label.setFixedHeight(100)
         if BG_BASE64.strip():
             try:
                 img_bytes = base64.b64decode(BG_BASE64)
                 qimg = QImage.fromData(BytesIO(img_bytes).getvalue())
                 pix_raw = QPixmap.fromImage(qimg)
-                pix_scaled = pix_raw.scaled(180, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                pix_scaled = pix_raw.scaled(180, 90, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 logo_label.setPixmap(pix_scaled)
             except Exception:
-                logo_label.setText("图片加载失败，请检查Base64字符串")
-        layout.addWidget(logo_label)
+                logo_label.setText("图片加载失败")
+        main_layout.addWidget(logo_label)
 
+        # 分隔线
         split_line = QLabel("————————————————————————————————")
+        split_line.setFixedHeight(20)
         split_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        split_line.setStyleSheet("color:#777; font-size:10px;")
-        layout.addWidget(split_line)
+        split_line.setStyleSheet("color:#777777; font-size:10px;")
+        main_layout.addWidget(split_line)
 
-        # 全局控件美化
-        self.widget_style = """
+        # 统一控件样式（只给按钮/输入框单独样式，不全局覆盖）
+        btn_style = """
         QPushButton{
             background-color: #4088dd;
             color: white;
             border-radius: 6px;
-            padding: 8px;
+            padding: 9px;
             font-size:14px;
         }
         QPushButton:hover{
             background-color: #2f77cc;
         }
-        QLineEdit{
+        """
+        edit_style = """
+        QLineEdit, QComboBox{
             border:1px solid #bbbbbb;
             border-radius:4px;
-            padding:6px;
-            background:white;
-            font-size:13px;
-        }
-        QComboBox{
-            border:1px solid #bbbbbb;
-            border-radius:4px;
-            padding:6px;
-            background:white;
-            font-size:13px;
-        }
-        QLabel{
+            padding:7px;
+            background:#ffffff;
             font-size:13px;
         }
         """
+        label_style = "QLabel{font-size:13px; color:#222222;}"
 
-        # 文件选择区
+        # 1. 选择PDF按钮
         self.btn_select = QPushButton("选择PDF文件")
-        self.btn_select.setStyleSheet(self.widget_style)
+        self.btn_select.setFixedHeight(42)
+        self.btn_select.setStyleSheet(btn_style)
         self.btn_select.clicked.connect(self.select_pdf)
-        layout.addWidget(self.btn_select)
+        main_layout.addWidget(self.btn_select)
 
+        # 文件名称显示
         self.label_file = QLabel("未选择文件")
+        self.label_file.setFixedHeight(24)
         self.label_file.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label_file.setMinimumHeight(22)
-        layout.addWidget(self.label_file)
+        self.label_file.setStyleSheet(label_style)
+        main_layout.addWidget(self.label_file)
 
-        # 风险等级下拉
-        layout.addWidget(QLabel("作业风险等级："))
+        # 2. 风险等级下拉
+        lab_risk = QLabel("作业风险等级：")
+        lab_risk.setStyleSheet(label_style)
+        main_layout.addWidget(lab_risk)
         self.combo_risk = QComboBox()
-        self.combo_risk.setStyleSheet(self.widget_style)
+        self.combo_risk.setFixedHeight(36)
+        self.combo_risk.setStyleSheet(edit_style)
         self.combo_risk.addItems(risk_list)
         self.combo_risk.setCurrentText("V")
-        layout.addWidget(self.combo_risk)
+        main_layout.addWidget(self.combo_risk)
 
-        # 坐标参数设置
-        layout.addWidget(QLabel("==== 标注位置参数设置 ===="))
+        # 3. X坐标行
+        lab_x = QLabel(f"左右偏移X({X_MIN}~{X_MAX})：")
+        lab_x.setStyleSheet(label_style)
         row_x = QHBoxLayout()
-        row_x.addWidget(QLabel(f"左右偏移X({X_MIN}~{X_MAX})："))
+        row_x.addWidget(lab_x)
         self.edit_x = QLineEdit(str(DEFAULT_X))
-        self.edit_x.setStyleSheet(self.widget_style)
+        self.edit_x.setFixedHeight(36)
+        self.edit_x.setStyleSheet(edit_style)
         self.edit_x.setToolTip("数值变大，文字向右移动；变小向左")
         row_x.addWidget(self.edit_x)
-        layout.addLayout(row_x)
+        main_layout.addLayout(row_x)
 
+        # 4. Y坐标行
+        lab_y = QLabel(f"上下偏移Y({Y_MIN}~{Y_MAX})：")
+        lab_y.setStyleSheet(label_style)
         row_y = QHBoxLayout()
-        row_y.addWidget(QLabel(f"上下偏移Y({Y_MIN}~{Y_MAX})："))
+        row_y.addWidget(lab_y)
         self.edit_y = QLineEdit(str(DEFAULT_Y))
-        self.edit_y.setStyleSheet(self.widget_style)
+        self.edit_y.setFixedHeight(36)
+        self.edit_y.setStyleSheet(edit_style)
         self.edit_y.setToolTip("数值变大，文字向上移动；变小向下")
         row_y.addWidget(self.edit_y)
-        layout.addLayout(row_y)
+        main_layout.addLayout(row_y)
 
-        # 重置按钮
+        # 重置坐标按钮
         self.btn_reset_pos = QPushButton("重置为默认坐标")
-        self.btn_reset_pos.setStyleSheet(self.widget_style)
+        self.btn_reset_pos.setFixedHeight(42)
+        self.btn_reset_pos.setStyleSheet(btn_style)
         self.btn_reset_pos.clicked.connect(self.reset_position)
-        layout.addWidget(self.btn_reset_pos)
+        main_layout.addWidget(self.btn_reset_pos)
 
-        # 生成按钮
+        # 生成PDF按钮
         self.btn_run = QPushButton("生成带风险等级的PDF")
-        self.btn_run.setStyleSheet(self.widget_style)
+        self.btn_run.setFixedHeight(42)
+        self.btn_run.setStyleSheet(btn_style)
         self.btn_run.clicked.connect(self.annotate_pdf)
-        layout.addWidget(self.btn_run)
+        main_layout.addWidget(self.btn_run)
 
-        layout.addStretch()
+        # 空白弹性占位
+        main_layout.addStretch()
 
-        # 底部版权区
+        # 底部版权区域
         footer_layout = QVBoxLayout()
         footer_layout.setSpacing(6)
 
+        # 版本号
         label_ver = QLabel("软件版本：20260701-v2.4")
         label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_ver.setStyleSheet("font-size:10px; color:#555555;")
         footer_layout.addWidget(label_ver)
 
+        # 仓库链接同一行
         repo_row = QHBoxLayout()
         repo_row.setAlignment(Qt.AlignmentFlag.AlignRight)
         tip_text = QLabel("开源仓库（更新下载、问题反馈）：")
@@ -176,12 +184,13 @@ class PDFRiskAnnotator(QMainWindow):
         repo_row.addWidget(link_label)
         footer_layout.addLayout(repo_row)
 
+        # 版权文字
         label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
         label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_copyright.setStyleSheet("font-size:9px; color:#555555;")
         footer_layout.addWidget(label_copyright)
 
-        layout.addLayout(footer_layout)
+        main_layout.addLayout(footer_layout)
 
     def reset_position(self):
         self.edit_x.setText(str(DEFAULT_X))
