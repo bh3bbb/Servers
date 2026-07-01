@@ -1,0 +1,25 @@
+name: Build Windows EXE
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-win:
+    runs-on: windows-latest # 云端Windows11 x64虚拟机
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+      - name: 配置Python3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 安装依赖
+        run: |
+          pip install -r requirements.txt
+      - name: PyInstaller打包GUI程序
+        run: |
+          pyinstaller --onefile --windowed --noconsole --name PDF风险标注工具 main.py
+      - name: 上传生成的EXE作为下载产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-x64-EXE
+          path: dist/*.exe
