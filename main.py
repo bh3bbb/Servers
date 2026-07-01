@@ -2,7 +2,7 @@ import sys
 import os
 import base64
 from io import BytesIO
-# DPI配置放最顶部
+# DPI适配前置
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 os.environ["QT_SCALE_FACTOR"] = "1"
@@ -38,8 +38,8 @@ class PDFRiskAnnotator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("电力通信工作票PDF风险等级标注工具")
-        # 加宽加高窗口，给底部留出充足高度
-        self.setFixedSize(660, 580)
+        # 加高窗口，彻底解决底部文字截断
+        self.setFixedSize(660, 620)
         self.pdf_path = ""
 
         self.setStyleSheet("background-color:#ffffff;")
@@ -47,17 +47,18 @@ class PDFRiskAnnotator(QMainWindow):
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
         main_layout.setSpacing(16)
-        # 底部边距大幅增加，防止底部文字被窗口截断
-        main_layout.setContentsMargins(30, 30, 30, 40)
+        # 底部边距加大，预留安全空间
+        main_layout.setContentsMargins(30, 30, 30, 60)
 
-        # 1. 顶部Logo区域修复：取消固定高度，自适应完整显示图片
+        # 1. Logo修复：增加上下内边距，不会裁切图片
         logo_label = QLabel()
+        # 给Logo上下填充，避免图片贴边被截断
+        logo_label.setStyleSheet("padding:8px 0px;")
         if BG_BASE64.strip():
             try:
                 img_bytes = base64.b64decode(BG_BASE64)
                 qimg = QImage.fromData(BytesIO(img_bytes).getvalue())
                 pix_raw = QPixmap.fromImage(qimg)
-                # 缩小缩放尺寸，保证整行完整显示不裁切
                 pix_scaled = pix_raw.scaled(220, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 logo_label.setPixmap(pix_scaled)
             except Exception:
@@ -71,7 +72,7 @@ class PDFRiskAnnotator(QMainWindow):
         split_line.setStyleSheet("color:#777777; font-size:10px;")
         main_layout.addWidget(split_line)
 
-        # 样式定义
+        # 样式定义：输入框强制文字黑色
         btn_style = """
         QPushButton{
             background-color: #4088dd;
@@ -84,6 +85,7 @@ class PDFRiskAnnotator(QMainWindow):
             background-color: #2f77cc;
         }
         """
+        # color:#000000 强制输入框文字黑色，解决白色文字看不见
         edit_style = """
         QLineEdit, QComboBox{
             border:1px solid #bbbbbb;
@@ -91,6 +93,7 @@ class PDFRiskAnnotator(QMainWindow):
             padding:7px;
             background:#ffffff;
             font-size:13px;
+            color:#000000;
         }
         """
         label_style = "QLabel{font-size:13px; color:#222222;}"
@@ -158,20 +161,18 @@ class PDFRiskAnnotator(QMainWindow):
         self.btn_run.clicked.connect(self.annotate_pdf)
         main_layout.addWidget(self.btn_run)
 
-        # 弹性占位，把底部区域向下顶，避免紧贴窗口底边
-        main_layout.addStretch(2)
+        # 加大弹性空白，把底部区域往下推，远离按钮
+        main_layout.addStretch(3)
 
-        # 底部版权区域 加大间距、放大字号、增加行高
+        # 底部版权区域 加大行间距、放大字号
         footer_layout = QVBoxLayout()
-        footer_layout.setSpacing(8)
+        footer_layout.setSpacing(10)
 
-        # 版本号
         label_ver = QLabel("软件版本：20260701-v2.4")
         label_ver.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_ver.setStyleSheet("font-size:11px; color:#555555;")
         footer_layout.addWidget(label_ver)
 
-        # 仓库链接同一行
         repo_row = QHBoxLayout()
         repo_row.setAlignment(Qt.AlignmentFlag.AlignRight)
         tip_text = QLabel("开源仓库（更新下载、问题反馈）：")
@@ -184,7 +185,6 @@ class PDFRiskAnnotator(QMainWindow):
         repo_row.addWidget(link_label)
         footer_layout.addLayout(repo_row)
 
-        # 版权文字
         label_copyright = QLabel("Open Source under MIT License | Copyright (c) 2026 Guangyuan Ding(BH3BBB)")
         label_copyright.setAlignment(Qt.AlignmentFlag.AlignRight)
         label_copyright.setStyleSheet("font-size:10px; color:#555555;")
@@ -194,6 +194,7 @@ class PDFRiskAnnotator(QMainWindow):
 
     def reset_position(self):
         self.edit_x.setText(str(DEFAULT_X))
+        self.edit_y.setText(str(DEFAULT_Y))
 
     def get_position_value(self):
         try:
