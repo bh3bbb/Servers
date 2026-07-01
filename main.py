@@ -51,7 +51,7 @@ class PDFRiskAnnotator(QMainWindow):
         layout.setSpacing(12)
         layout.setContentsMargins(25, 25, 25, 25)
 
-        # 全局控件美化样式（保留原有配色不变）
+        # 全局控件美化样式【重点修复下拉弹窗文字黑色】
         self.widget_style = """
         QPushButton{
             background-color: #4088dd;
@@ -76,6 +76,12 @@ class PDFRiskAnnotator(QMainWindow):
             padding:4px;
             background:white;
             color:#000000;
+        }
+        /* 下拉弹出列表背景+文字强制黑色 */
+        QComboBox QAbstractItemView{
+            background: white;
+            color: black;
+            selection-background:#cce0ff;
         }
         QLabel{
             font-size:13px;
