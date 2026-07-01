@@ -2,4 +2,3 @@ pyqt6
 pypdf2
 reportlab
 pyinstaller
-pymupdf
